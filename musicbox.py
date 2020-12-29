@@ -36,6 +36,8 @@ def parse_directory(input_dir: str):
     print(f"Parsing {input_dir}")
     files = glob.glob(f"{input_dir}/*mp3")
     file_list = sorted(files, key=lambda x: float(re.findall("(\d+)", x)[0]))
+    return file_list
+
 
 def play_single_file(input_file:str):
     player = vlc.Instance()
