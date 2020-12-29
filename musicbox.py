@@ -10,8 +10,8 @@ input_dir = '/home/pi/Music/LeSoldatRose'
 
 
 def main_loop():
-    # from signal import pause
-    # pause()
+    from signal import pause
+    pause()
     pass
 
 
@@ -66,9 +66,10 @@ def create_playlist(input_dir: str):
 
 def main():
     # player = vlc.MediaPlayer('termine.mp3')
-
+    print("create media player")
     media_player = vlc.MediaListPlayer()
-
+    print("create playlist")
+    create_playlist(input_dir)
     button_gauche = Button(4)
     button_droit = Button(3)
     button_milieu = Button(2, hold_time=3)
