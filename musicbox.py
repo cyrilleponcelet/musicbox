@@ -5,12 +5,20 @@ import glob
 import re
 import time
 
+
+
 class Player:
 
-    def __init__(self, input_dir='/home/pi/Music/LeSoldatRose'):
+    # match directories and their associated files to play
+    directories= {"Odyssee": ('/home/pi/Music/Odyssee',"./odyssee.m4a"),
+                      "Olma": ('/home/pi/Music/Olma',"./olma.m4a"),
+                      "LeSoldatRose":('/home/pi/Music/LeSoldatRose',"./SoldatRose.m4a")
+                      }
+
+    def __init__(self, first_dir="Odyssee"):
         # static stuff
         self.media_player = None
-        self.input_dir = input_dir
+        self.current_dir = first_dir
 
 
     def main_loop(self):
@@ -25,6 +33,15 @@ class Player:
         print("Really Shutdown")
         check_call(['sudo', 'poweroff'])
 
+    def _next_dir(self):
+        keys = self.directories.keys
+        current_idx = keys.index(self.current_dir)
+        current_idx = current_idx+1
+        if current_idx >= len(keys):
+            current_idx = 0
+        self.current_dir = keys[current_idx]
+        self._pause()
+        self.create_playlist(self.current_dir)
 
     def _next(self):
         self.media_player.next()
@@ -37,9 +54,12 @@ class Player:
 
 
 
-    def parse_directory(self,input_dir: str):
+    def parse_directory(self,dir_name: str):
         """ Parse a directory and return file content"""
+        input_dir = self.directory_names[dir_name.lower()][0]
         print(f"Parsing {input_dir}")
+        self.play_single_file(self.directory_names[dir_name.lower()][1])
+
         files = glob.glob(f"{input_dir}/*mp3")
         file_list = sorted(files, key=lambda x: float(re.findall("(\d+)", x)[0]))
         return file_list
@@ -54,9 +74,9 @@ class Player:
         self.media_player.play_item_at_index(0)
 
 
-    def create_playlist(self,input_dir: str):
+    def create_playlist(self,dir_name: str):
         """ parse a directory and create playlist"""
-        file_list = self.parse_directory(input_dir)
+        file_list = self.parse_directory(dir_name)
         player = vlc.Instance()
         media_list = player.media_list_new()
         for f in file_list:
@@ -74,14 +94,15 @@ class Player:
         print("create media player")
         self.media_player = vlc.MediaListPlayer()
         print("create playlist")
-        self.create_playlist(self.input_dir)
+        self.create_playlist(self.current_dir)
         button_gauche = Button(4)
-        button_droit = Button(3)
-        button_milieu = Button(2, hold_time=3)
+        button_droit = Button(3, hold_time=1)
+        button_milieu = Button(2, hold_time=1)
 
 
         button_gauche.when_pressed = self._backward
         button_droit.when_pressed = self._next
+        button_droit.when_held = self._next_dir
 
         button_milieu.when_pressed =self._pause
         button_milieu.when_held = self.shutdown
